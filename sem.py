@@ -1,4 +1,4 @@
-# small_energy_masking.py
+# sem.py
 
 import torch
 
@@ -20,3 +20,4 @@ def small_energy_masking(energy: torch.Tensor) -> torch.Tensor:
     masked_energy *= scaling_factor
     
     return masked_energy
+
