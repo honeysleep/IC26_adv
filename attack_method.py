@@ -11,6 +11,7 @@ class AdversarialAttacker:
     def __init__(self, speaker_encoder, n_fft=512, hop_length=200, win_length=400, n_mels=64, sr=16000):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.speaker_encoder = speaker_encoder.to(self.device).eval()
+        self.compute_gradient = loss_function(e, e_tilde)
         
         self.n_fft = n_fft
         self.hop_length = hop_length
@@ -63,7 +64,7 @@ class AdversarialAttacker:
         current_log_mel = torch.log(current_mel + 1e-9).squeeze(0)
         e_tilde = F.normalize(self.speaker_encoder(current_log_mel), p=2, dim=1)
         
-        grad, _ = compute_gradient(e, e_tilde)
+        grad, _ = self.compute_gradient(e, e_tilde)
         
         grad_upsampled = F.interpolate(
             grad.unsqueeze(0).unsqueeze(0), size=(spec_adv.size(1), spec_adv.size(2)),
@@ -98,7 +99,7 @@ class AdversarialAttacker:
             current_log_mel = torch.log(current_mel + 1e-9).squeeze(0)
             e_tilde = F.normalize(self.speaker_encoder(current_log_mel), p=2, dim=1)
 
-            grad, _ = compute_gradient(e, e_tilde)
+            grad, _ = self.compute_gradient(e, e_tilde)
 
             grad_upsampled = F.interpolate(
                 grad.unsqueeze(0).unsqueeze(0), size=(spec_adv.size(1), spec_adv.size(2)),
@@ -114,4 +115,5 @@ class AdversarialAttacker:
                 spec_adv = torch.clamp(spec_adv, min=1e-6)
 
         return self._reconstruct(spec_adv, phase, original_length)
+
 
